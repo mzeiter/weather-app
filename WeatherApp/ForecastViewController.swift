@@ -8,15 +8,18 @@
 
 import UIKit
 import Foundation
+import CoreLocation
+import AddressBookUI
+
+
+
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-    
-    
-    
     
    
     
     
+    @IBOutlet weak var testBtn: UIButton!
     @IBOutlet weak var todayLbl: UILabel!
     @IBOutlet weak var currentDayLbl: UILabel!
     @IBOutlet weak var currentHighLbl: UILabel!
@@ -30,6 +33,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     @IBOutlet weak var editBtn: UIButton!
     @IBOutlet weak var settingsBtn: UIButton!
     
+    var currentWeather: CurrentWeather?
+    var dailyWeather: DailyWeather?
+    
     var usrTextField: UITextField?
     var currentDegreeF: Double!
     var currentCondition: String!
@@ -41,10 +47,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var dayHigh : Double!
     var dayLow : Double!
     
-    var highArray : [String] = []
+    var highArray : [String] = ["", "", "", "", "", ""]
+    var lat : Double = 0.00
     
-    var test : String!
     
+    var zipCode : String = ""
     var exists: Bool = true
     
 
@@ -57,14 +64,29 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         self.view.addSubview(hourlyForecastCollectionView)
         self.view.addSubview(dailyForecastCollectionView)
+        
+        forwardGeocoding(address: "45066")
 
         // Do any additional setup after loading the view.
     }
     
-    @IBAction func editBtnPressed(_ sender: Any) {
-        locationAlert(title: "Edit Location", message: "Enter your postal code below.")
+    //Converts a zipCode into latitude and longitude
+    func forwardGeocoding(address: String) {
+        CLGeocoder().geocodeAddressString(address, completionHandler: { (placemarks, error) in
+            if error != nil {
+                print(error!)
+                return
+            }
+            if placemarks!.count > 0 {
+                let placemark = placemarks?[0]
+                let location = placemark?.location
+                let coordinate = location?.coordinate
+                self.lat = coordinate!.latitude
+                print("\nlat: \(coordinate!.latitude), long: \(coordinate!.longitude)")
+                
+            }
+        })
     }
-    
     
     //gets TODAY'S date
     func getDate () -> String {
@@ -75,11 +97,72 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         let dayString: String = dateFormatter.string(from: date)
         print("Current date is \(dayString)")
         return dayString
-
-        
-        
         
     }
+    
+    
+    func getDaysOfWeek () -> Array<String> {
+        
+        var daysOfWeekArray : [String] = ["", "","", "","", ""] //array has 6
+        
+        let date = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd-MM-yyyy"
+        dateFormatter.dateFormat = "EEEE"
+        let dayString: String = dateFormatter.string(from: date)
+        print(dayString)
+        
+        for i in 1...6 {
+            let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.day,
+                                                  value: i,
+                                                  to: date as Date)
+            dateFormatter.dateFormat = "EEEE"
+            let dayString: String = dateFormatter.string(from: nextDay!)
+            daysOfWeekArray[i-1] = dayString
+        }
+        
+        return daysOfWeekArray
+        
+    }
+    
+    
+    
+    func getHoursOfDay () -> Array<String> {
+        
+        var hoursOfDayArray : [String] = ["", "","", "","", "", "", "", "", "", "", "","", "","", "", "", "", "", "", "", "","", ""] //array has 24
+        let date = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "dd-MM-yyyy"
+        dateFormatter.dateFormat = "h a"
+        dateFormatter.amSymbol = "AM"
+        dateFormatter.pmSymbol = "PM"
+        
+        let dayString: String = dateFormatter.string(from: date)
+        print(dayString)
+        
+        for i in 1...10 {
+            let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.hour,
+                                                  value: i-1,
+                                                  to: date as Date)
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.dateFormat = "h a"
+            dateFormatter.amSymbol = "AM"
+            dateFormatter.pmSymbol = "PM"
+            let dayString: String = dateFormatter.string(from: nextDay!)
+            hoursOfDayArray[i-1] = dayString
+        }
+        
+        return hoursOfDayArray
+        
+    }
+    
+    
+    
+    @IBAction func editBtnPressed(_ sender: Any) {
+        locationAlert(title: "Edit Location", message: "Enter your postal code below.")
+    }
+    
     
     
     func locationAlert (title: String, message:String) {
@@ -91,32 +174,40 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             textField.placeholder = "e.g. 32256"
         }
         
-        let OKAction = UIAlertAction(title: "OK", style: .default) {  _ in
-            let zip = alert.textFields?[0].text ?? ""
-            self.test = zip
-            print (zip)
+        
+        
+        let OKAction = UIAlertAction(title: "OK", style: .default)  {  _ in
+            self.zipCode = alert.textFields?[0].text ?? ""
+            print (self.zipCode)
             
-            self.getCurrentWeather(zip: zip, day: 0)
-            //self.getDailyWeather(zip: zip, day: 1)
+            self.getCurrentWeather(zip: self.zipCode, day: 0)
+            self.highArray = self.getDailyWeather(zip: self.zipCode)
+            print (self.highArray)
             
-
         }
+        
+        
         alert.addAction(OKAction)
         self.present(alert, animated: true, completion: nil)
-        //print ("Test: \(test)")
 
     }
     
     
     
+    @IBAction func testBtnPressed(_ sender: Any) {
+        print ("Test print #2 ----- \(zipCode)")
+        print ("Did this work ---- \(city)")
+        //print("Did this work ------ \(currentWeather?.location)")
+        print("Did this work ------ \(lat)")
+
+
+    }
     
     
     
-    
+
     //Gets current weather data
     func getCurrentWeather(zip:String, day: Int) {
-        
-        
         
         let urlRequest = URLRequest(url: URL(string: "http://api.apixu.com/v1/forecast.json?key=57fbd314643d4439b5e23413182306&days=10&q=\(zip)")!)
         
@@ -128,10 +219,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     
                     //current parent
                     if let current = json["current"] as? [String : AnyObject] {
-                        
+                    
                         
                         if let temp = current["temp_f"] as? Double {
                             self.currentDegreeF = temp
+                            
                         }
                         if let condition = current["condition"] as? [String : AnyObject] {
                             self.currentCondition = condition["text"] as! String
@@ -143,20 +235,19 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     //location parent
                     if let location = json["location"] as? [String: AnyObject] {
                         self.city = location["name"] as! String
+                        self.currentWeather?.location = location["name"] as! String
                     }
                     
                     //forecast parent
-                    if let forecast = json["forecast"] as? [String : AnyObject]{
-                        print("test1")
+                    if let forecast = json["forecast"] as? [String : AnyObject] {
                         
                         if let forecastday = forecast["forecastday"] as? [AnyObject] {
-                            print("test 2")
                             if let day0 = forecastday[day] as? [String : AnyObject] {
-                                print("test 3")
                                 if let day = day0["day"] as? [String : AnyObject] {
-                                    print ("test 4")
                                     if let maxtemp_f = day["maxtemp_f"] as? Double {
                                         self.highF = maxtemp_f
+                                        self.dailyWeather?.high = maxtemp_f
+                                        
                                     }
                                     if let mintemp_f = day["mintemp_f"] as? Double{
                                         self.lowF = mintemp_f
@@ -169,6 +260,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                         }
                         
                     }
+                    
                     
                     if let _ = json["error"] {
                         self.exists = false
@@ -183,7 +275,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.currentLowLbl.isHidden = false
                             self.currentDayLbl.isHidden = false
                             self.todayLbl.isHidden = false
-                            
                             
                             
                             
@@ -207,10 +298,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.todayLbl.isHidden = true
                             
                             
-                            self.cityLbl.text = "No matching city found"
+                            self.cityLbl.text = "No matching city"
                             self.exists = true
                             
                         }
+         
                     }
                     
                 } catch let jsonError {
@@ -221,13 +313,23 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         }
         
         task.resume()
+        print ("Test print ----- \(zipCode)")
+        
+        let weekDay = DailyWeather.init(conditionImg: #imageLiteral(resourceName: "cloudy"), high: 22.21, low: 22.22, dayOfWeek: "Tuesday")
+        print(weekDay)
         
 
     }
     
-    //get daily weather data test
     
-    func getDailyWeather(zip:String, day: Int) {
+    //get daily weather data test (needs pic, high&low)
+    
+    func getDailyWeather(zip:String) -> Array <String> {
+        var arrayOfHigh : [String] = ["a", "", "", "", "", ""]
+
+        
+        
+            
         let urlRequest = URLRequest(url: URL(string: "http://api.apixu.com/v1/forecast.json?key=57fbd314643d4439b5e23413182306&days=10&q=\(zip)")!)
         
         
@@ -241,23 +343,27 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     //forecast parent
                     if let forecast = json["forecast"] as? [String : AnyObject]{
                         
-                        
                         if let forecastday = forecast["forecastday"] as? [AnyObject] {
                            
-                            if let day0 = forecastday[day] as? [String : AnyObject] {
-                                
-                                if let day = day0["day"] as? [String : AnyObject] {
+                            for i in 1...6 {
+                            
+                                if let day0 = forecastday[i] as? [String : AnyObject] {
                                     
-                                    if let maxtemp_f = day["maxtemp_f"] as? Double {
-                                        self.dayHigh = maxtemp_f
-                                    }
-                                    if let mintemp_f = day["mintemp_f"] as? Double{
-                                        self.dayLow = mintemp_f
+                                    if let day = day0["day"] as? [String : AnyObject] {
+                                        
+                                        if let maxtemp_f = day["maxtemp_f"] as? Double {
+                                            print (maxtemp_f.description)
+                                            arrayOfHigh[i-1] = maxtemp_f.description
+                                        }
+                                        
                                     }
                                     
                                 }
-                                
                             }
+                                
+                            
+                            
+                          
                             
                         }
                         
@@ -275,7 +381,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             
                         } else{
                             
-                            self.cityLbl.text = "No matching city found"
+                            self.cityLbl.text = "No matching city"
                             self.exists = true
                             
                         }
@@ -286,19 +392,22 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 }
             }
             
+
         }
         
         task.resume()
+        print("Array of high ---- \(arrayOfHigh)")
+        return arrayOfHigh
+
         
     }
 
-   
     
     //Test image array
     var imgArray = [UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy")]
     
-    var daysOfWeekArray : [String] = getDaysOfWeek()
-    var hoursOfDayArray : [String] = getHoursOfDay()
+    lazy var daysOfWeekArray : [String] = getDaysOfWeek()
+    lazy var hoursOfDayArray : [String] = getHoursOfDay()
 
     
     
@@ -311,6 +420,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             return 6
             
         }
+
     }
     
     //Formatting cells
@@ -319,7 +429,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         if collectionView == self.hourlyForecastCollectionView {
             
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HourlyCollectionViewCell", for: indexPath) as! HourlyCollectionViewCell
-            //cell.hourConditionImg.image = imgArray[indexPath.row]
             cell.hourLbl.text = hoursOfDayArray[indexPath.row]
             
             return cell
@@ -330,77 +439,32 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DailyCollectionViewCell", for: indexPath) as! DailyCollectionViewCell
             cell.conditionImg.image = imgArray[indexPath.row]
             cell.dayLbl.text = daysOfWeekArray[indexPath.row]
-            cell.conditionImg.isHidden = false;
-            cell.dayLbl.isHidden = false
             
+            
+            //let hourlyweather = self.hourlyWeatherArray[indexPath.row]
+            //cell.conditionImg = hourlyweather.conditionImg
+          
             return cell
             
         }
         
         
     }
-}
+    
+    
 
-
-
-
-func getDaysOfWeek () -> Array<String> {
     
-    var daysOfWeekArray : [String] = ["", "","", "","", ""] //array has 6
     
-    let date = Date()
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "dd-MM-yyyy"
-    dateFormatter.dateFormat = "EEEE"
-    let dayString: String = dateFormatter.string(from: date)
-    print(dayString)
     
-    for i in 1...6 {
-        let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.day,
-            value: i,
-            to: date as Date)
-        dateFormatter.dateFormat = "EEEE"
-        let dayString: String = dateFormatter.string(from: nextDay!)
-        daysOfWeekArray[i-1] = dayString
-    }
     
-    return daysOfWeekArray
     
+//LAST BRACKET OF CLASS
 }
 
 
 
 
 
-func getHoursOfDay () -> Array<String> {
-    
-    var hoursOfDayArray : [String] = ["", "","", "","", "", "", "", "", "", "", "","", "","", "", "", "", "", "", "", "","", ""] //array has 24
-    let date = Date()
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "dd-MM-yyyy"
-    dateFormatter.dateFormat = "h a"
-    dateFormatter.amSymbol = "AM"
-    dateFormatter.pmSymbol = "PM"
-    
-    let dayString: String = dateFormatter.string(from: date)
-    print(dayString)
-    
-    for i in 1...10 {
-        let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.hour,
-            value: i-1,
-            to: date as Date)
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.dateFormat = "h a"
-        dateFormatter.amSymbol = "AM"
-        dateFormatter.pmSymbol = "PM"
-        let dayString: String = dateFormatter.string(from: nextDay!)
-        hoursOfDayArray[i-1] = dayString
-    }
-    
-    return hoursOfDayArray
-    
-}
 
 
 
