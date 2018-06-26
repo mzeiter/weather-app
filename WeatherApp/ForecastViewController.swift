@@ -11,18 +11,10 @@ import Foundation
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
-    var imgArray = [UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy")]
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imgArray.count
-    }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DailyCollectionViewCell", for: indexPath) as! DailyCollectionViewCell
-        cell.conditionImg.image = imgArray[indexPath.row]
-        
-        return cell
-    }
+    
+   
     
     
     @IBOutlet weak var todayLbl: UILabel!
@@ -33,7 +25,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     @IBOutlet weak var currentTempLbl: UILabel!
     @IBOutlet weak var currentConditionLbl: UILabel!
     @IBOutlet weak var currentPic: UIImageView!
-    @IBOutlet weak var hourForecastCollectionView: UICollectionView!
+    @IBOutlet weak var hourlyForecastCollectionView: UICollectionView!
     @IBOutlet weak var dailyForecastCollectionView: UICollectionView!
     @IBOutlet weak var editBtn: UIButton!
     @IBOutlet weak var settingsBtn: UIButton!
@@ -45,10 +37,26 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var city: String!
     var highF : Double!
     var lowF : Double!
+    
+    var dayHigh : Double!
+    var dayLow : Double!
+    
+    var highArray : [String] = []
+    
+    var test : String!
+    
     var exists: Bool = true
+    
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        hourlyForecastCollectionView.delegate = self
+        dailyForecastCollectionView.delegate = self
+        
+        self.view.addSubview(hourlyForecastCollectionView)
+        self.view.addSubview(dailyForecastCollectionView)
 
         // Do any additional setup after loading the view.
     }
@@ -58,15 +66,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     }
     
     
+    //gets TODAY'S date
     func getDate () -> String {
         let date = Date()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MM-yyyy"
-        
-        let tomorrow = NSCalendar.current.date(byAdding: Calendar.Component.day, //Here you can add year, month, hour, etc.
-            value: 1,  //Here you can add number of units
-            to: date as Date)
-
         dateFormatter.dateFormat = "EEEE"
         let dayString: String = dateFormatter.string(from: date)
         print("Current date is \(dayString)")
@@ -79,6 +83,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     
     func locationAlert (title: String, message:String) {
+        
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
         alert.addTextField{ (textField: UITextField) in
@@ -88,24 +93,28 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         let OKAction = UIAlertAction(title: "OK", style: .default) {  _ in
             let zip = alert.textFields?[0].text ?? ""
+            self.test = zip
             print (zip)
             
-            self.getDailyWeather(zip: zip, day: 0)
+            self.getCurrentWeather(zip: zip, day: 0)
+            //self.getDailyWeather(zip: zip, day: 1)
             
+
         }
         alert.addAction(OKAction)
-        
         self.present(alert, animated: true, completion: nil)
-        
-        
+        //print ("Test: \(test)")
+
     }
     
     
     
     
     
-    //day of week, picture, high&low
-    func getDailyWeather(zip:String, day: Int) {
+    
+    
+    //Gets current weather data
+    func getCurrentWeather(zip:String, day: Int) {
         
         
         
@@ -142,7 +151,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                         
                         if let forecastday = forecast["forecastday"] as? [AnyObject] {
                             print("test 2")
-                            if let day0 = forecastday[0] as? [String : AnyObject] {
+                            if let day0 = forecastday[day] as? [String : AnyObject] {
                                 print("test 3")
                                 if let day = day0["day"] as? [String : AnyObject] {
                                     print ("test 4")
@@ -213,9 +222,149 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         task.resume()
         
+
+    }
+    
+    //get daily weather data test
+    
+    func getDailyWeather(zip:String, day: Int) {
+        let urlRequest = URLRequest(url: URL(string: "http://api.apixu.com/v1/forecast.json?key=57fbd314643d4439b5e23413182306&days=10&q=\(zip)")!)
+        
+        
+        
+        let task = URLSession.shared.dataTask(with: urlRequest) { (data,response, error) in
+            if error == nil{
+                do{
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as! [String : AnyObject]
+                    
+                    
+                    //forecast parent
+                    if let forecast = json["forecast"] as? [String : AnyObject]{
+                        
+                        
+                        if let forecastday = forecast["forecastday"] as? [AnyObject] {
+                           
+                            if let day0 = forecastday[day] as? [String : AnyObject] {
+                                
+                                if let day = day0["day"] as? [String : AnyObject] {
+                                    
+                                    if let maxtemp_f = day["maxtemp_f"] as? Double {
+                                        self.dayHigh = maxtemp_f
+                                    }
+                                    if let mintemp_f = day["mintemp_f"] as? Double{
+                                        self.dayLow = mintemp_f
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    if let _ = json["error"] {
+                        self.exists = false
+                    }
+                    
+                    DispatchQueue.main.async {
+                        if self.exists{
+                            
+                         print ("yay")
+
+                            
+                        } else{
+                            
+                            self.cityLbl.text = "No matching city found"
+                            self.exists = true
+                            
+                        }
+                    }
+                    
+                } catch let jsonError {
+                    print(jsonError.localizedDescription)
+                }
+            }
+            
+        }
+        
+        task.resume()
         
     }
 
+   
+    
+    //Test image array
+    var imgArray = [UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy"), UIImage (named: "cloudy")]
+    
+    var daysOfWeekArray : [String] = getDaysOfWeek()
+    var hoursOfDayArray : [String] = getHoursOfDay()
+
+    
+    
+    //Collection view count
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView == self.hourlyForecastCollectionView {
+            return 10
+        }
+        else{
+            return 6
+            
+        }
+    }
+    
+    //Formatting cells
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        if collectionView == self.hourlyForecastCollectionView {
+            
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HourlyCollectionViewCell", for: indexPath) as! HourlyCollectionViewCell
+            //cell.hourConditionImg.image = imgArray[indexPath.row]
+            cell.hourLbl.text = hoursOfDayArray[indexPath.row]
+            
+            return cell
+        }
+            
+        else {
+            
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DailyCollectionViewCell", for: indexPath) as! DailyCollectionViewCell
+            cell.conditionImg.image = imgArray[indexPath.row]
+            cell.dayLbl.text = daysOfWeekArray[indexPath.row]
+            cell.conditionImg.isHidden = false;
+            cell.dayLbl.isHidden = false
+            
+            return cell
+            
+        }
+        
+        
+    }
+}
+
+
+
+
+func getDaysOfWeek () -> Array<String> {
+    
+    var daysOfWeekArray : [String] = ["", "","", "","", ""] //array has 6
+    
+    let date = Date()
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "dd-MM-yyyy"
+    dateFormatter.dateFormat = "EEEE"
+    let dayString: String = dateFormatter.string(from: date)
+    print(dayString)
+    
+    for i in 1...6 {
+        let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.day,
+            value: i,
+            to: date as Date)
+        dateFormatter.dateFormat = "EEEE"
+        let dayString: String = dateFormatter.string(from: nextDay!)
+        daysOfWeekArray[i-1] = dayString
+    }
+    
+    return daysOfWeekArray
     
 }
 
@@ -223,6 +372,35 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
 
 
 
+func getHoursOfDay () -> Array<String> {
+    
+    var hoursOfDayArray : [String] = ["", "","", "","", "", "", "", "", "", "", "","", "","", "", "", "", "", "", "", "","", ""] //array has 24
+    let date = Date()
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+    dateFormatter.dateFormat = "dd-MM-yyyy"
+    dateFormatter.dateFormat = "h a"
+    dateFormatter.amSymbol = "AM"
+    dateFormatter.pmSymbol = "PM"
+    
+    let dayString: String = dateFormatter.string(from: date)
+    print(dayString)
+    
+    for i in 1...10 {
+        let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.hour,
+            value: i-1,
+            to: date as Date)
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "h a"
+        dateFormatter.amSymbol = "AM"
+        dateFormatter.pmSymbol = "PM"
+        let dayString: String = dateFormatter.string(from: nextDay!)
+        hoursOfDayArray[i-1] = dayString
+    }
+    
+    return hoursOfDayArray
+    
+}
 
 
 

@@ -14,3 +14,4 @@ class DailyCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var highLbl: UILabel!
     @IBOutlet weak var lowLbl: UILabel!
 }
+
