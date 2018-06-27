@@ -33,6 +33,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     @IBOutlet weak var editBtn: UIButton!
     @IBOutlet weak var settingsBtn: UIButton!
     
+    
     var currentWeather: CurrentWeather?
     var dailyWeather: [DailyWeather] = []
         
