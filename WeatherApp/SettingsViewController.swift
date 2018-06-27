@@ -63,6 +63,7 @@ class SettingsViewController: UIViewController {
             break
         }
         print("Status---\(fahrenheit.description)")
+    
     }
     
     @IBAction func tappedToChangeView(_ sender: Any) {

@@ -58,6 +58,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     
     //Converts a zipcode into latitude and longitude
+
     func forwardGeocoding(zipcode: String) {
         CLGeocoder().geocodeAddressString(zipcode, completionHandler: { (placemarks, error) in
             
@@ -306,6 +307,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.currentConditionLbl.text = currentWeather.currentCondition
                             self.currentPic.image = currentWeather.currentImg
                             
+                            
                             //self.currentHighLbl.text = "\(self.highF.description)°"
                             //self.currentLowLbl.text = "\(self.lowF.description)°"
                             self.currentDayLbl.text = self.getDate()
@@ -394,9 +396,16 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             cell.dayLbl.text = daysOfWeekArray[indexPath.row]
             
-            //let hourlyWeather = HourlyWeather()
+            //let dailyWeather = DailyWeather ()
+            
+            let dailyWeather: [DailyWeather]
+            
+            // how do i access a value from an object in an array ?
+            //cell.highLbl.text = dailyWeather[indexPath.row]
+
             //let hourlyweather = self.hourlyWeatherArray[indexPath.row]
             //cell.conditionImg = hourlyweather.conditionImg
+            
           
             return cell
             
