@@ -13,11 +13,15 @@ import Foundation
 class CurrentWeather: NSObject {
     
     var currentTemp : Double!
-    var currentImg : UIImageView?
+    var currentImg : UIImage?
     var currentCondition : String!
-    var location : String!
+    var location : String! //not found in JSON
+    var hourlyWeather: [HourlyWeather] = []
+
     
-    init (currentTemp: Double, currentImg: UIImageView, currentCondition: String, location: String) {
+    convenience init (currentTemp: Double, currentImg: UIImage, currentCondition: String, location: String) {
+        
+        self.init()
         
         self.currentTemp = currentTemp
         self.currentImg = currentImg

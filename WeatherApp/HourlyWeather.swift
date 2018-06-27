@@ -12,15 +12,22 @@ import Foundation
 
 class HourlyWeather: NSObject {
     
-    var temp : CGFloat!
+    var temp : Double!
     var conditionImg : UIImage?
+    var hour : Int! //not found in JSON
+
     
-    init (temp: CGFloat, conditionImg: UIImage) {
+    
+    convenience init (temp: Double, conditionImg: UIImage ,hour : Int) {
+        self.init()
         
         self.temp = temp
         self.conditionImg = conditionImg
+        self.hour = hour 
+
         
     }
+    
     
     
 }

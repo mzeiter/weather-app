@@ -47,11 +47,11 @@
                                 <rect key="frame" x="0.0" y="107" width="375" height="61"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="partlycloudy" translatesAutoresizingMaskIntoConstraints="NO" id="Uwn-pN-4kT">
-                                        <rect key="frame" x="144" y="-2" width="86" height="65"/>
+                                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="clear-day" translatesAutoresizingMaskIntoConstraints="NO" id="Uwn-pN-4kT">
+                                        <rect key="frame" x="144" y="0.0" width="86" height="61"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
-                                    <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Temp" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="spx-Lh-k71">
+                                    <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Temp" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="8" translatesAutoresizingMaskIntoConstraints="NO" id="spx-Lh-k71">
                                         <rect key="frame" x="53" y="8" width="83" height="45"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -115,7 +115,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="55" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="sunny-1" translatesAutoresizingMaskIntoConstraints="NO" id="loF-bD-1nY">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="snow-1" translatesAutoresizingMaskIntoConstraints="NO" id="loF-bD-1nY">
                                                     <rect key="frame" x="15" y="33" width="25" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 </imageView>
@@ -187,7 +187,7 @@
                                                     <color key="textColor" red="0.0" green="0.14265241840000001" blue="0.47654226039999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="chancetstorms-1" translatesAutoresizingMaskIntoConstraints="NO" id="8da-fk-bmd">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="clear-day-1" translatesAutoresizingMaskIntoConstraints="NO" id="8da-fk-bmd">
                                                     <rect key="frame" x="157" y="3" width="26" height="26"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 </imageView>
@@ -281,6 +281,9 @@
                                             <segment title="Farenheit"/>
                                             <segment title="Celsius"/>
                                         </segments>
+                                        <connections>
+                                            <action selector="controlChanged:" destination="Bpq-pW-Abr" eventType="valueChanged" id="zYg-fe-kz3"/>
+                                        </connections>
                                     </segmentedControl>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Weather data provided by" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kkf-jC-q8x">
                                         <rect key="frame" x="33" y="91" width="193" height="16"/>
@@ -332,6 +335,7 @@
                     <connections>
                         <outlet property="apixuBtn" destination="HEv-Hn-rNn" id="MOu-Pz-VaG"/>
                         <outlet property="backgroundView" destination="l57-Wd-XSS" id="DKJ-bX-EIy"/>
+                        <outlet property="fahrenheitControl" destination="z1S-cS-dpn" id="etl-a3-XLA"/>
                         <outlet property="iconsBtn" destination="Hlr-rO-T14" id="v88-ri-pnz"/>
                         <outlet property="settingsView" destination="HEL-wv-82U" id="dGQ-yX-Hhw"/>
                     </connections>
@@ -340,7 +344,6 @@
                 <tapGestureRecognizer id="m1P-7n-9ob">
                     <connections>
                         <action selector="tappedToChangeView:" destination="Bpq-pW-Abr" id="S1D-Ec-6Qz"/>
-                        <segue destination="f7q-zl-rIh" kind="presentation" modalTransitionStyle="crossDissolve" id="kHj-qW-jtz"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>
@@ -348,10 +351,10 @@
         </scene>
     </scenes>
     <resources>
-        <image name="chancetstorms-1" width="25" height="25"/>
+        <image name="clear-day" width="50" height="50"/>
+        <image name="clear-day-1" width="25" height="25"/>
         <image name="edit" width="22" height="22"/>
-        <image name="partlycloudy" width="50" height="50"/>
         <image name="settings" width="22" height="22"/>
-        <image name="sunny-1" width="25" height="25"/>
+        <image name="snow-1" width="25" height="25"/>
     </resources>
 </document>

@@ -15,9 +15,10 @@ class DailyWeather: NSObject {
     var conditionImg : UIImage?
     var high : Double?
     var low : Double?
-    var dayOfWeek : String!
+    var dayOfWeek : String!  //not found in JSON
     
-    init (conditionImg: UIImage, high: Double, low: Double, dayOfWeek : String) {
+    convenience init (conditionImg: UIImage, high: Double, low: Double, dayOfWeek : String) {
+        self.init()
         
         self.conditionImg = conditionImg
         self.high = high
