@@ -13,11 +13,11 @@ import Foundation
 class DailyWeather: NSObject {
     
     var conditionImg : UIImage?
-    var high : Double?
-    var low : Double?
+    var high : String!
+    var low : String!
     var dayOfWeek : String!  //not found in JSON
     
-    convenience init (conditionImg: UIImage, high: Double, low: Double, dayOfWeek : String) {
+    convenience init (conditionImg: UIImage, high: String, low: String, dayOfWeek : String) {
         self.init()
         
         self.conditionImg = conditionImg

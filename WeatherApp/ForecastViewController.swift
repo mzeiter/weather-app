@@ -14,7 +14,7 @@ import AddressBookUI
 
 
 
-class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, CLLocationManagerDelegate {
     
    
     
@@ -36,26 +36,40 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     var currentWeather: CurrentWeather?
     var dailyWeather: [DailyWeather] = []
-        
-    var lat : Double = 0.00
-    var long : Double = 0.00
+    var isDataLoaded = false
+    
+    var lat : Double = 32.2
+    var long : Double = -82.2
     var zipCode : String = ""
     var exists: Bool = true
     
+//   let locationManager : CLLocationManager = CLLocationManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        hourlyForecastCollectionView.delegate = self
-        dailyForecastCollectionView.delegate = self
+//        hourlyForecastCollectionView.delegate = self
+//        dailyForecastCollectionView.delegate = self
+
+//        self.view.addSubview(hourlyForecastCollectionView)
+//        self.view.addSubview(dailyForecastCollectionView)
         
-        self.view.addSubview(hourlyForecastCollectionView)
-        self.view.addSubview(dailyForecastCollectionView)
+        //location stuff
+//        locationManager.delegate = self
+//        locationManager.requestWhenInUseAuthorization()
+//        locationManager.startUpdatingLocation()
         
-        //forwardGeocoding(address: "45066")
+        //locationManager.stopUpdatingLocation()
+        
 
         // Do any additional setup after loading the view.
     }
+    
+//    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]){
+//        for currentLocation in locations {
+//            print("\(index): \(currentLocation)")
+//        }
+//    }
     
     
     //Converts a zipcode into latitude and longitude
@@ -63,7 +77,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     func forwardGeocoding(zipcode: String) {
         CLGeocoder().geocodeAddressString(zipcode, completionHandler: { (placemarks, error) in
             
-            let currentWeather = CurrentWeather()
             if error != nil {
                 print(error!)
                 return
@@ -76,11 +89,14 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 self.long = coordinate!.longitude
                 
                 if let placemark = placemarks?[0] {
+                    let currentWeather = CurrentWeather()
+
                     
                     let city = placemark.addressDictionary!["City"] as? String
 
                     currentWeather.location = city
                     print (city!)
+                    self.currentWeather = currentWeather
                     
                 }
                 
@@ -130,10 +146,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     }
     
     
-    //Gets 24 hours starting with current time
+    //Gets next 24 hours starting with current time
     func getHoursOfDay () -> Array<String> {
         
-        var hoursOfDayArray : [String] = ["", "","", "","", "", "", "", "", "", "", "","", "","", "", "", "", "", "", "", "","", ""] //array has 24
+        var hoursOfDayArray : [String] = ["", "","", "","", "", "", "", "", "", "", "","", "","", "", "", "", "", "", "", "","", "", ""] //array has 25
         
         let date = Date()
         let dateFormatter = DateFormatter()
@@ -142,7 +158,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         dateFormatter.amSymbol = "AM"
         dateFormatter.pmSymbol = "PM"
        
-        for i in 1...24 {
+        for i in 1...25 {
             let nextDay = NSCalendar.current.date(byAdding: Calendar.Component.hour,
                                                   value: i-1,
                                                   to: date as Date)
@@ -175,11 +191,13 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             self.zipCode = alert.textFields?[0].text ?? ""
             print (self.zipCode)
             
-            self.forwardGeocoding(zipcode: self.zipCode)
-            
+           // self.forwardGeocoding(zipcode: self.zipCode)
+           // self.forwardGeocoding(zipcode: self.zipCode)
 
-            self.getCurrentWeather(lat : self.lat, long: self.long)
-            
+
+          //  self.getCurrentWeather(lat : self.lat, long: self.long)
+            self.getCurrentWeather(lat : 30.0, long: -87.3)
+
             
         }
         
@@ -218,7 +236,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 let currentWeather = CurrentWeather()
                 let dailyWeather = NSMutableArray()
                 let hourlyWeather = NSMutableArray()
-                //^ set = to themselves at end of this ^
+
                 
                 do{
                     let json = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as! [String : AnyObject]
@@ -228,7 +246,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     
                         
                         if let temperature = currently["temperature"] as? Double {
-                            currentWeather.currentTemp = temperature
+                            currentWeather.currentTemp = Int(temperature).description
                         }
                         if let icon = currently["icon"] as? String {
                             currentWeather.currentImg = UIImage (named: icon)
@@ -248,7 +266,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             if let data = hourly["data"] as? [AnyObject] {
                                 if let hourNum = data[i] as? [String : AnyObject] {
                                     if let temperature = hourNum["temperature"] as? Double {
-                                        hour.temp = temperature
+                                        hour.temp = Int(temperature).description
                                     }
                                     if let icon = hourNum["icon"] as? String {
                                         hour.conditionImg = UIImage (named: icon)
@@ -263,7 +281,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     
                     //'daily' parent
                     //set up for loop here
-                    for i in 0...5{
+                    for i in 1...6{
                         // 'day' object created
                         let day = DailyWeather()
                         
@@ -271,13 +289,15 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             if let data = daily["data"] as? [AnyObject] {
                                 if let dayNum = data[i] as? [String : AnyObject] {
                                     if let temperatureHigh = dayNum["temperatureHigh"] as? Double {
-                                        day.high = temperatureHigh
+                                        day.high = Int(temperatureHigh).description
                                     }
                                     if let temperatureLow = dayNum["temperatureLow"] as? Double {
-                                        day.low = temperatureLow
+                                        day.low = Int(temperatureLow).description
                                     }
                                     if let icon = dayNum["icon"] as? String {
                                         day.conditionImg = UIImage(named: icon)
+                                        //delete later
+                                        day.dayOfWeek = "Monday"
                                     }
                                 }
                             }
@@ -313,6 +333,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             //self.currentLowLbl.text = "\(self.lowF.description)°"
                             self.currentDayLbl.text = self.getDate()
                             
+
                             
                         } else{
                             self.currentTempLbl.isHidden = true
@@ -335,18 +356,39 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     print(jsonError.localizedDescription)
                 }
                 
+                print("test ....")
+                
+                print(self.dailyWeather.count)
+                
+                
+                
+                
                 self.currentWeather = currentWeather
                 self.dailyWeather = dailyWeather as! [DailyWeather]
-                
-                //how to set hourly to itself
                 self.currentWeather?.hourlyWeather = hourlyWeather as! [HourlyWeather]
+                
+                
                 
             }
             
         }
         
         task.resume()
-        print ("Test print ----- \(zipCode)")
+        print ("Zip code: \(zipCode)")
+        
+        
+        isDataLoaded = true
+
+        
+        dailyForecastCollectionView.delegate = self
+        dailyForecastCollectionView.dataSource = self
+        
+        hourlyForecastCollectionView.delegate = self
+        hourlyForecastCollectionView.dataSource = self
+        
+
+        dailyForecastCollectionView.reloadData()
+        hourlyForecastCollectionView.reloadData()
         
 
     }
@@ -370,10 +412,25 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     //Collection view count
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == self.hourlyForecastCollectionView {
-            return hoursOfDayArray.count
+
+            
+            if (currentWeather?.hourlyWeather.count) != nil {
+                return (currentWeather?.hourlyWeather.count)!
+            }
+            else {
+                return 0
+            }
+
         }
         else{
-            return daysOfWeekArray.count
+            
+            if dailyWeather.count != 0 {
+                return dailyWeather.count
+            }
+            else {
+                return 0
+            }
+            
             
         }
 
@@ -386,7 +443,22 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HourlyCollectionViewCell", for: indexPath) as! HourlyCollectionViewCell
             
+            
+            let hourlyWeatherArray = self.currentWeather?.hourlyWeather
+            
+            var tempArray = [String]()
+            var iconArray = [UIImage]()
+            print ("Array size: \(String(describing: hourlyWeatherArray?.count))")
+            
+            for hour in hourlyWeatherArray! {
+                tempArray.append(hour.temp)
+                iconArray.append(hour.conditionImg!)
+            }
+            
+            
             cell.hourLbl.text = hoursOfDayArray[indexPath.row]
+            cell.hourDegreeLbl.text = tempArray[indexPath.row]
+            cell.hourConditionImg.image = iconArray[indexPath.row]
             
             return cell
         }
@@ -395,14 +467,29 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DailyCollectionViewCell", for: indexPath) as! DailyCollectionViewCell
             
+            
+            let dailyWeatherArray = self.dailyWeather
+            
+            var highArray = [String]()
+            var lowArray = [String]()
+            var iconArray = [UIImage]()
+            print ("Array size: \(dailyWeatherArray.count)")
+            
+            for day in dailyWeatherArray {
+                highArray.append(day.high!)
+                lowArray.append(day.low!)
+                iconArray.append(day.conditionImg!)
+            }
+            
+            
             cell.dayLbl.text = daysOfWeekArray[indexPath.row]
+            cell.conditionImg.image = iconArray[indexPath.row]
+            cell.highLbl.text = highArray[indexPath.row]
+            cell.lowLbl.text = lowArray[indexPath.row]
             
-            //let dailyWeather = DailyWeather ()
             
-            let dailyWeather: [DailyWeather]
             
             // how do i access a value from an object in an array ?
-            //cell.highLbl.text = dailyWeather[indexPath.row]
 
             //let hourlyweather = self.hourlyWeatherArray[indexPath.row]
             //cell.conditionImg = hourlyweather.conditionImg

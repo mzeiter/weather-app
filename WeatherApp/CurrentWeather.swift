@@ -12,14 +12,18 @@ import Foundation
 
 class CurrentWeather: NSObject {
     
-    var currentTemp : Double!
+    var currentTemp : String!
     var currentImg : UIImage?
     var currentCondition : String!
     var location : String! //not found in JSON
+    var high : String!
+    var low : String!
+    var today : String!
+    
     var hourlyWeather: [HourlyWeather] = []
 
     
-    convenience init (currentTemp: Double, currentImg: UIImage, currentCondition: String, location: String) {
+    convenience init (currentTemp: String, currentImg: UIImage, currentCondition: String, location: String, high: String, low: String, today: String) {
         
         self.init()
         
@@ -27,6 +31,10 @@ class CurrentWeather: NSObject {
         self.currentImg = currentImg
         self.currentCondition = currentCondition
         self.location = location
+        
+        self.high = high
+        self.low = low
+        self.today = today
         
     }
 

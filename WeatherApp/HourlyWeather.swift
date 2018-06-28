@@ -12,13 +12,13 @@ import Foundation
 
 class HourlyWeather: NSObject {
     
-    var temp : Double!
+    var temp : String!
     var conditionImg : UIImage?
     var hour : Int! //not found in JSON
 
     
     
-    convenience init (temp: Double, conditionImg: UIImage ,hour : Int) {
+    convenience init (temp: String, conditionImg: UIImage ,hour : Int) {
         self.init()
         
         self.temp = temp
