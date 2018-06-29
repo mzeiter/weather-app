@@ -16,23 +16,29 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var backgroundView: UIView!
     @IBOutlet weak var fahrenheitControl: UISegmentedControl!
     
-    
-    var fahrenheit : Bool = true
-    
-    convenience init (fahrenheit: Bool) {
-        
-        self.init()
-        
-        self.fahrenheit = fahrenheit
-        
-    }
+    var index : Int?
+
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        
+        if let value = UserDefaults.standard.value(forKey: "chosenDegree"){
+            let selectedIndex = value as! Int
+            print(selectedIndex)
+            fahrenheitControl.selectedSegmentIndex = selectedIndex
+            self.index = selectedIndex
+            
+            let forecastVC = ViewController()
+            forecastVC.customInit(index: self.index!)
+            
+        }
 
-        // Do any additional setup after loading the view.
     }
+    
+    
 
     @IBAction func apixuBtnPressed(_ sender: Any) {
         
@@ -51,25 +57,33 @@ class SettingsViewController: UIViewController {
     
    
 
-    @IBAction func controlChanged(_ sender: Any) {
+    @IBAction func controlChanged(_ sender: UISegmentedControl) {
         
-        switch fahrenheitControl.selectedSegmentIndex
-        {
-        case 0:
-            fahrenheit = true
-        case 1:
-            fahrenheit = false
-        default:
-            break
-        }
-        print("Status---\(fahrenheit.description)")
-    
+        UserDefaults.standard.set(sender.selectedSegmentIndex, forKey: "chosenDegree")
+
     }
     
     @IBAction func tappedToChangeView(_ sender: Any) {
+        
+//        let forecastVC = ViewController()
+//        forecastVC.customInit(index: self.index!)
+        
+        if let value = UserDefaults.standard.value(forKey: "chosenDegree"){
+            let selectedIndex = value as! Int
+            print(selectedIndex)
+            fahrenheitControl.selectedSegmentIndex = selectedIndex
+            self.index = selectedIndex
+            
+            let forecastVC = ViewController()
+            forecastVC.customInit(index: self.index!)
+            forecastVC.index = selectedIndex
+            
+        }
+        
+        
         self.dismiss(animated: true, completion: nil)
-        print("STATUS---\(fahrenheit.description)")
-
+        
+        
     }
     
     

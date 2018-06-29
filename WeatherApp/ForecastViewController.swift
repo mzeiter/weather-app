@@ -34,19 +34,22 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     @IBOutlet weak var settingsBtn: UIButton!
     
     
-    var currentWeather: CurrentWeather?
+    var currentWeather = CurrentWeather()
     var dailyWeather: [DailyWeather] = []
     var isDataLoaded = false
+    var index : Int = 0
     
-    var lat : Double = 32.2
-    var long : Double = -82.2
     var zipCode : String = ""
+
     var exists: Bool = true
     
 //   let locationManager : CLLocationManager = CLLocationManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print("index is : \(index)")
+        
         
 //        hourlyForecastCollectionView.delegate = self
 //        dailyForecastCollectionView.delegate = self
@@ -71,40 +74,58 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
 //        }
 //    }
     
+
+    func customInit (index : Int) {
+        self.index = index
+    }
+    
+    
+    
+    
     
     //Converts a zipcode into latitude and longitude
 
     func forwardGeocoding(zipcode: String) {
         CLGeocoder().geocodeAddressString(zipcode, completionHandler: { (placemarks, error) in
             
+            let currentWeatherr = CurrentWeather()
+
             if error != nil {
                 print(error!)
+                print("Invalid zipcode!")
                 return
             }
             if placemarks!.count > 0 {
                 let placemark = placemarks?[0]
                 let location = placemark?.location
                 let coordinate = location?.coordinate
-                self.lat = coordinate!.latitude
-                self.long = coordinate!.longitude
                 
-                if let placemark = placemarks?[0] {
-                    let currentWeather = CurrentWeather()
-
-                    
-                    let city = placemark.addressDictionary!["City"] as? String
-
-                    currentWeather.location = city
-                    print (city!)
-                    self.currentWeather = currentWeather
-                    
-                }
+                let lat = coordinate!.latitude
+                let long = coordinate!.longitude
                 
-                print("\nlat: \(coordinate!.latitude), long: \(coordinate!.longitude)")
+                currentWeatherr.location = (placemark?.addressDictionary!["City"] as? String)!
+
+                print ("Geocode city is 1 \((currentWeatherr.location)!)")
+                print ("Geocode city is 2 \(self.currentWeather.location)")
+                
+                print("Geocode lat: \(coordinate!.latitude), long: \(coordinate!.longitude)")
+                
+                
+                self.currentWeather = currentWeatherr
+                
+                print ("Geocode city is 3  \(self.currentWeather.location)")
+
+                
+                    self.getCurrentWeather(lat: lat, long: long)
+                    //self.getCurrentWeather(lat: lat, long: long)
+
                 
             }
+            
+            
         })
     }
+    
     
     //Converts Fahrenheit temp to Celsius    
     func convertToCelsius(fahrenheit: Int) -> Int {
@@ -189,15 +210,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         let OKAction = UIAlertAction(title: "OK", style: .default)  {  _ in
             self.zipCode = alert.textFields?[0].text ?? ""
-            print (self.zipCode)
+            print ("Zipcode entered by user: \(self.zipCode)")
             
-           // self.forwardGeocoding(zipcode: self.zipCode)
-           // self.forwardGeocoding(zipcode: self.zipCode)
+            self.forwardGeocoding(zipcode: self.zipCode)
 
-
-          //  self.getCurrentWeather(lat : self.lat, long: self.long)
-            self.getCurrentWeather(lat : 30.0, long: -87.3)
-
+            
             
         }
         
@@ -212,11 +229,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     //Test button to check values of vars
     @IBAction func testBtnPressed(_ sender: Any) {
-        let fahrenheitBool = SettingsViewController()
+        let settingsVC = SettingsViewController()
+        
         
         print ("Test print zip ----- \(zipCode)")
-        print("Did this work lat ------ \(lat.description)")
-        print("STATUS Test ------\(fahrenheitBool.fahrenheit)")
+        print ("Test - index is : ")
+        
     }
     
     
@@ -230,7 +248,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         print ("-----url-----\(urlRequest)")
         let task = URLSession.shared.dataTask(with: urlRequest) { (data,response, error) in
-            
+        print("uhhhh")
             if error == nil{
                 
                 let currentWeather = CurrentWeather()
@@ -322,6 +340,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.currentDayLbl.isHidden = false
                             self.todayLbl.isHidden = false
                             
+                            
+                            print("What is : \(currentWeather.location)")
                                                     
                             self.currentTempLbl.text = "\(currentWeather.currentTemp.description)°"
                             self.cityLbl.text = currentWeather.location
@@ -356,28 +376,31 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     print(jsonError.localizedDescription)
                 }
                 
-                print("test ....")
                 
-                print(self.dailyWeather.count)
+                print("dailyWeather Array size: \(self.dailyWeather.count)")
                 
                 
                 
                 
                 self.currentWeather = currentWeather
                 self.dailyWeather = dailyWeather as! [DailyWeather]
-                self.currentWeather?.hourlyWeather = hourlyWeather as! [HourlyWeather]
+                self.currentWeather.hourlyWeather = hourlyWeather as! [HourlyWeather]
                 
                 
                 
             }
-            
+            self.isDataLoaded = true
+
         }
         
-        task.resume()
-        print ("Zip code: \(zipCode)")
         
         
-        isDataLoaded = true
+            task.resume()
+        
+        
+        
+        
+//        isDataLoaded = true
 
         
         dailyForecastCollectionView.delegate = self
@@ -390,7 +413,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         dailyForecastCollectionView.reloadData()
         hourlyForecastCollectionView.reloadData()
         
-
+        
     }
     
     
@@ -414,8 +437,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         if collectionView == self.hourlyForecastCollectionView {
 
             
-            if (currentWeather?.hourlyWeather.count) != nil {
-                return (currentWeather?.hourlyWeather.count)!
+            if (currentWeather.hourlyWeather.count) != 0 {
+                return (currentWeather.hourlyWeather.count)
             }
             else {
                 return 0
@@ -444,13 +467,13 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HourlyCollectionViewCell", for: indexPath) as! HourlyCollectionViewCell
             
             
-            let hourlyWeatherArray = self.currentWeather?.hourlyWeather
+            let hourlyWeatherArray = self.currentWeather.hourlyWeather
             
             var tempArray = [String]()
             var iconArray = [UIImage]()
-            print ("Array size: \(String(describing: hourlyWeatherArray?.count))")
+            print ("Array size: \(String(describing: hourlyWeatherArray.count))")
             
-            for hour in hourlyWeatherArray! {
+            for hour in hourlyWeatherArray {
                 tempArray.append(hour.temp)
                 iconArray.append(hour.conditionImg!)
             }
