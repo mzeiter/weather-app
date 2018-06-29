@@ -36,11 +36,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     var currentWeather = CurrentWeather()
     var dailyWeather: [DailyWeather] = []
-    var isDataLoaded = false
     var index : Int = 0
+    typealias funcCompleted = () -> ()
+
     
     var zipCode : String = ""
-
     var exists: Bool = true
     
 //   let locationManager : CLLocationManager = CLLocationManager()
@@ -48,14 +48,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print("index is : \(index)")
+        dailyForecastCollectionView.delegate = self
+        dailyForecastCollectionView.dataSource = self
         
+        hourlyForecastCollectionView.delegate = self
+        hourlyForecastCollectionView.dataSource = self
         
-//        hourlyForecastCollectionView.delegate = self
-//        dailyForecastCollectionView.delegate = self
-
-//        self.view.addSubview(hourlyForecastCollectionView)
-//        self.view.addSubview(dailyForecastCollectionView)
         
         //location stuff
 //        locationManager.delegate = self
@@ -88,7 +86,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     func forwardGeocoding(zipcode: String) {
         CLGeocoder().geocodeAddressString(zipcode, completionHandler: { (placemarks, error) in
             
-            let currentWeatherr = CurrentWeather()
+            let currentWeather = CurrentWeather()
 
             if error != nil {
                 print(error!)
@@ -103,23 +101,17 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 let lat = coordinate!.latitude
                 let long = coordinate!.longitude
                 
-                currentWeatherr.location = (placemark?.addressDictionary!["City"] as? String)!
+                currentWeather.location = (placemark?.addressDictionary!["City"] as? String)!
 
-                print ("Geocode city is 1 \((currentWeatherr.location)!)")
-                print ("Geocode city is 2 \(self.currentWeather.location)")
-                
+                print ("Geocode city is  \((currentWeather.location))")
                 print("Geocode lat: \(coordinate!.latitude), long: \(coordinate!.longitude)")
                 
+                self.currentWeather = currentWeather
                 
-                self.currentWeather = currentWeatherr
+                self.cityLbl.text = self.currentWeather.location
                 
-                print ("Geocode city is 3  \(self.currentWeather.location)")
-
-                
-                    self.getCurrentWeather(lat: lat, long: long)
-                    //self.getCurrentWeather(lat: lat, long: long)
-
-                
+                self.getCurrentWeather(lat: lat, long: long)
+                // Add closure/completion handler sorta thing THEN call reload datas (bc reload datas executing before functs are finishing)
             }
             
             
@@ -210,17 +202,16 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         let OKAction = UIAlertAction(title: "OK", style: .default)  {  _ in
             self.zipCode = alert.textFields?[0].text ?? ""
-            print ("Zipcode entered by user: \(self.zipCode)")
+            print ("\nZipcode entered by user: \(self.zipCode)")
             
             self.forwardGeocoding(zipcode: self.zipCode)
-
-            
             
         }
         
         
         alert.addAction(OKAction)
         self.present(alert, animated: true, completion: nil)
+        
 
     }
     
@@ -229,12 +220,14 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     //Test button to check values of vars
     @IBAction func testBtnPressed(_ sender: Any) {
-        let settingsVC = SettingsViewController()
+//        let settingsVC = SettingsViewController()
         
         
         print ("Test print zip ----- \(zipCode)")
-        print ("Test - index is : ")
-        
+
+        print("reloading data....")
+        self.dailyForecastCollectionView.reloadData()
+        self.hourlyForecastCollectionView.reloadData()
     }
     
     
@@ -243,12 +236,14 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
 
     //Gets current weather data
     func getCurrentWeather(lat: Double, long: Double) {
+
         
         let urlRequest = URLRequest(url: URL(string: "https://api.darksky.net/forecast/382765538514b141e907ccb338fac67c/\(lat)" + ",\(long)")!)
         
         print ("-----url-----\(urlRequest)")
         let task = URLSession.shared.dataTask(with: urlRequest) { (data,response, error) in
-        print("uhhhh")
+        print("test")
+            
             if error == nil{
                 
                 let currentWeather = CurrentWeather()
@@ -292,14 +287,14 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                                 }
                             }
                         }
-                        
+                        //print("hour test loop")
                         hourlyWeather.add(hour)
                     }
                 
                     
                     //'daily' parent
                     //set up for loop here
-                    for i in 1...6{
+                    for i in 0...6{
                         // 'day' object created
                         let day = DailyWeather()
                         
@@ -307,22 +302,42 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             if let data = daily["data"] as? [AnyObject] {
                                 if let dayNum = data[i] as? [String : AnyObject] {
                                     if let temperatureHigh = dayNum["temperatureHigh"] as? Double {
-                                        day.high = Int(temperatureHigh).description
+                                       
+                                        if(i != 0) {
+                                            day.high = Int(temperatureHigh).description
+                                        }
+                                        else {
+                                            currentWeather.high = Int(temperatureHigh).description
+                                        }
+                                
                                     }
                                     if let temperatureLow = dayNum["temperatureLow"] as? Double {
-                                        day.low = Int(temperatureLow).description
+                                        
+                                        
+                                        if(i != 0) {
+                                            day.low = Int(temperatureLow).description
+                                        }
+                                        else {
+                                            currentWeather.low = Int(temperatureLow).description
+                                        }
+                                        
                                     }
                                     if let icon = dayNum["icon"] as? String {
-                                        day.conditionImg = UIImage(named: icon)
-                                        //delete later
-                                        day.dayOfWeek = "Monday"
+                                        
+                                        if (i != 0){
+                                            day.conditionImg = UIImage(named: icon)
+                                        }
+                                        
                                     }
                                 }
                             }
                         }
-                        
-                        dailyWeather.add(day)
+                        if (i != 0) {
+                            //print("day test loop")
+                            dailyWeather.add(day)
+                        }
                     }
+                    
                     
 
                     
@@ -341,16 +356,13 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.todayLbl.isHidden = false
                             
                             
-                            print("What is : \(currentWeather.location)")
-                                                    
                             self.currentTempLbl.text = "\(currentWeather.currentTemp.description)°"
-                            self.cityLbl.text = currentWeather.location
+                            //self.cityLbl.text = currentWeather.location   <-- moved this to geocoding func
                             self.currentConditionLbl.text = currentWeather.currentCondition
                             self.currentPic.image = currentWeather.currentImg
                             
-                            
-                            //self.currentHighLbl.text = "\(self.highF.description)°"
-                            //self.currentLowLbl.text = "\(self.lowF.description)°"
+                            self.currentHighLbl.text = "\(currentWeather.high.description)°"
+                            self.currentLowLbl.text = "\(currentWeather.low.description)°"
                             self.currentDayLbl.text = self.getDate()
                             
 
@@ -377,9 +389,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 }
                 
                 
-                print("dailyWeather Array size: \(self.dailyWeather.count)")
-                
-                
                 
                 
                 self.currentWeather = currentWeather
@@ -387,31 +396,22 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 self.currentWeather.hourlyWeather = hourlyWeather as! [HourlyWeather]
                 
                 
+                print("dailyWeather Array size: \(self.dailyWeather.count)")
+                print("hourlyWeather Array size: \(self.currentWeather.hourlyWeather.count)")
                 
+                
+                
+
             }
-            self.isDataLoaded = true
+            
 
         }
         
-        
-        
-            task.resume()
-        
-        
-        
-        
-//        isDataLoaded = true
+        self.dailyForecastCollectionView.reloadData()
+        self.hourlyForecastCollectionView.reloadData()
 
         
-        dailyForecastCollectionView.delegate = self
-        dailyForecastCollectionView.dataSource = self
-        
-        hourlyForecastCollectionView.delegate = self
-        hourlyForecastCollectionView.dataSource = self
-        
-
-        dailyForecastCollectionView.reloadData()
-        hourlyForecastCollectionView.reloadData()
+        task.resume()
         
         
     }
@@ -435,6 +435,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     //Collection view count
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == self.hourlyForecastCollectionView {
+            print("CV test: \(currentWeather.hourlyWeather.count)")
+            print("CV test: \(dailyWeather.count)")
 
             
             if (currentWeather.hourlyWeather.count) != 0 {

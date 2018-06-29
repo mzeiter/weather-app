@@ -15,7 +15,7 @@ class CurrentWeather: NSObject {
     var currentTemp : String!
     var currentImg : UIImage?
     var currentCondition : String!
-    var location : String! //not found in JSON
+    var location : String = ""       //not found in JSON
     var high : String!
     var low : String!
     var today : String!
