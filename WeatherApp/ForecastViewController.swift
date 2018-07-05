@@ -54,6 +54,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         hourlyForecastCollectionView.delegate = self
         hourlyForecastCollectionView.dataSource = self
         
+        hourlyForecastCollectionView.layer.borderColor = UIColor.darkGray.cgColor
+        hourlyForecastCollectionView.layer.borderWidth = 0.25
+        
         
         //location stuff
 //        locationManager.delegate = self
@@ -111,11 +114,13 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 self.cityLbl.text = self.currentWeather.location
                 
                 self.getCurrentWeather(lat: lat, long: long)
-                // Add closure/completion handler sorta thing THEN call reload datas (bc reload datas executing before functs are finishing)
+                
             }
             
             
         })
+        
+        
     }
     
     
@@ -229,9 +234,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         self.dailyForecastCollectionView.reloadData()
         self.hourlyForecastCollectionView.reloadData()
     }
-    
-    
-    
+
     
 
     //Gets current weather data
@@ -365,6 +368,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.currentLowLbl.text = "\(currentWeather.low.description)°"
                             self.currentDayLbl.text = self.getDate()
                             
+                            
+                            self.hourlyForecastCollectionView.reloadData()
+                            self.dailyForecastCollectionView.reloadData()
 
                             
                         } else{
@@ -412,7 +418,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
 
         
         task.resume()
-        
         
     }
     
