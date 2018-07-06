@@ -123,6 +123,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 print(error!)
                 print("Invalid zipcode!")
                 
+                
                 let alert = UIAlertController(title: "Error", message: "Invalid zipcode entered.", preferredStyle: .alert)
                 let OKAction = UIAlertAction(title: "Dismiss", style: .default, handler: nil)
                 alert.addAction(OKAction)
