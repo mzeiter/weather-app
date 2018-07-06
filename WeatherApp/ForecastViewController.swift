@@ -36,17 +36,34 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     var currentWeather = CurrentWeather()
     var dailyWeather: [DailyWeather] = []
-    var index : Int = 0
-    typealias funcCompleted = () -> ()
-
+    var settingsVC = SettingsViewController()
+    
     
     var zipCode : String = ""
     var exists: Bool = true
     
-//   let locationManager : CLLocationManager = CLLocationManager()
+    var locationManager = CLLocationManager()
     
+    
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        
+        
+        //location stuff
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.requestAlwaysAuthorization()
+            locationManager.requestWhenInUseAuthorization()
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.startUpdatingLocation()
+            
+        }
+   
+        
+        
         
         dailyForecastCollectionView.delegate = self
         dailyForecastCollectionView.dataSource = self
@@ -57,29 +74,40 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         hourlyForecastCollectionView.layer.borderColor = UIColor.darkGray.cgColor
         hourlyForecastCollectionView.layer.borderWidth = 0.25
         
+
         
-        //location stuff
-//        locationManager.delegate = self
-//        locationManager.requestWhenInUseAuthorization()
-//        locationManager.startUpdatingLocation()
-        
-        //locationManager.stopUpdatingLocation()
         
 
         // Do any additional setup after loading the view.
     }
     
-//    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]){
-//        for currentLocation in locations {
-//            print("\(index): \(currentLocation)")
-//        }
-//    }
+    
     
 
-    func customInit (index : Int) {
-        self.index = index
-    }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+
+        
+        
+        if let location = locations.first{
+        locationManager.stopUpdatingLocation()
+
+        
+        print("locations = \(location.coordinate.latitude) \(location.coordinate.longitude)")
+            
+        reverseGeocoding(lat: location.coordinate.latitude, long: location.coordinate.longitude)
+        
     
+            
+        }
+        
+        print("sup")
+        
+
+        
+        
+    }
+
+
     
     
     
@@ -94,6 +122,13 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             if error != nil {
                 print(error!)
                 print("Invalid zipcode!")
+                
+                let alert = UIAlertController(title: "Error", message: "Invalid zipcode entered.", preferredStyle: .alert)
+                let OKAction = UIAlertAction(title: "Dismiss", style: .default, handler: nil)
+                alert.addAction(OKAction)
+                self.present(alert, animated: true, completion: nil)
+
+                
                 return
             }
             if placemarks!.count > 0 {
@@ -121,6 +156,52 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         })
         
         
+    }
+    
+    func reverseGeocoding (lat: Double, long: Double){
+        
+        print ("STARTING REVERSE GEO")
+        let location = CLLocation(latitude: lat, longitude: long) //changed!!!
+        print(location)
+        
+        CLGeocoder().reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+            print(location)
+            
+            let currentWeather = CurrentWeather()
+
+            
+            if error != nil {
+                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                return
+            }
+            
+            if (placemarks?.count)! > 0 {
+                let pm = placemarks![0]
+                print(pm.locality!)
+                
+    
+                let placemark = placemarks?[0]
+                
+                currentWeather.location = (placemark?.addressDictionary!["City"] as? String)!
+                
+                print ("Reverse Geocode city is  \((currentWeather.location))")
+                print("Reverse Geocode lat: \(lat), long: \(long)")
+                
+                
+                
+                self.currentWeather = currentWeather
+                
+                self.cityLbl.text = self.currentWeather.location
+                
+                self.getCurrentWeather(lat: lat, long: long)
+                
+                
+                
+            }
+            else {
+                print("Problem with the data received from geocoder")
+            }
+        })
     }
     
     
@@ -225,14 +306,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     //Test button to check values of vars
     @IBAction func testBtnPressed(_ sender: Any) {
-//        let settingsVC = SettingsViewController()
+        //let settingsVC = SettingsViewController()
         
-        
-        print ("Test print zip ----- \(zipCode)")
-
-        print("reloading data....")
-        self.dailyForecastCollectionView.reloadData()
-        self.hourlyForecastCollectionView.reloadData()
+        //print ("Test print zip ----- \(zipCode)")
+        //print("Segment Control : \(settingsVC.indexx)")
     }
 
     
@@ -478,7 +555,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             var tempArray = [String]()
             var iconArray = [UIImage]()
-            print ("Array size: \(String(describing: hourlyWeatherArray.count))")
+            //print ("Array size: \(String(describing: hourlyWeatherArray.count))")
             
             for hour in hourlyWeatherArray {
                 tempArray.append(hour.temp)
@@ -503,7 +580,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             var highArray = [String]()
             var lowArray = [String]()
             var iconArray = [UIImage]()
-            print ("Array size: \(dailyWeatherArray.count)")
+            //print ("Array size: \(dailyWeatherArray.count)")
             
             for day in dailyWeatherArray {
                 highArray.append(day.high!)
@@ -516,14 +593,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             cell.conditionImg.image = iconArray[indexPath.row]
             cell.highLbl.text = highArray[indexPath.row]
             cell.lowLbl.text = lowArray[indexPath.row]
-            
-            
-            
-            // how do i access a value from an object in an array ?
-
-            //let hourlyweather = self.hourlyWeatherArray[indexPath.row]
-            //cell.conditionImg = hourlyweather.conditionImg
-            
           
             return cell
             

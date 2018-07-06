@@ -15,8 +15,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var apixuBtn: UIButton!
     @IBOutlet weak var backgroundView: UIView!
     @IBOutlet weak var fahrenheitControl: UISegmentedControl!
-    
-    var index : Int?
+    var indexx : Int?
 
     
     
@@ -29,10 +28,6 @@ class SettingsViewController: UIViewController {
             let selectedIndex = value as! Int
             print(selectedIndex)
             fahrenheitControl.selectedSegmentIndex = selectedIndex
-            self.index = selectedIndex
-            
-            let forecastVC = ViewController()
-            forecastVC.customInit(index: self.index!)
             
         }
 
@@ -65,18 +60,10 @@ class SettingsViewController: UIViewController {
     
     @IBAction func tappedToChangeView(_ sender: Any) {
         
-//        let forecastVC = ViewController()
-//        forecastVC.customInit(index: self.index!)
-        
         if let value = UserDefaults.standard.value(forKey: "chosenDegree"){
             let selectedIndex = value as! Int
             print(selectedIndex)
             fahrenheitControl.selectedSegmentIndex = selectedIndex
-            self.index = selectedIndex
-            
-            let forecastVC = ViewController()
-            forecastVC.customInit(index: self.index!)
-            forecastVC.index = selectedIndex
             
         }
         
@@ -85,6 +72,28 @@ class SettingsViewController: UIViewController {
         
         
     }
+    
+    
+    @IBAction func segmentSwitch(_ sender: Any) {
+        
+        var index = indexx
+        switch fahrenheitControl.selectedSegmentIndex
+        {
+        case 0:
+            index = 0
+            print("First Segment Selected");
+        case 1:
+            index = 1
+            print("Second Segment Selected");
+        default:
+            break
+        }
+        
+        self.indexx = index
+        
+    }
+    
+    
     
     
 }
