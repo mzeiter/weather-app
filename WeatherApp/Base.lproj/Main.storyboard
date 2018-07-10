@@ -248,7 +248,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sil-Jm-8vL" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="812" y="-387.25637181409297"/>
+            <point key="canvasLocation" x="810.39999999999998" y="-388.15592203898052"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="8Ad-qY-pRm">
@@ -284,7 +284,6 @@
                                         <color key="tintColor" red="0.0" green="0.54454748939999997" blue="0.55096340669999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <connections>
                                             <action selector="controlChanged:" destination="Bpq-pW-Abr" eventType="valueChanged" id="zYg-fe-kz3"/>
-                                            <action selector="segmentSwitch:" destination="Bpq-pW-Abr" eventType="valueChanged" id="yrW-M0-h1a"/>
                                         </connections>
                                     </segmentedControl>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Weather data provided by" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kkf-jC-q8x">

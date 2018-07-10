@@ -16,8 +16,7 @@ import AddressBookUI
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, CLLocationManagerDelegate {
     
-   
-    
+
     
     @IBOutlet weak var testBtn: UIButton!
     @IBOutlet weak var todayLbl: UILabel!
@@ -206,12 +205,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     }
     
     
-    //Converts Fahrenheit temp to Celsius    
-    func convertToCelsius(fahrenheit: Int) -> Int {
-        return Int(5.0 / 9.0 * (Double(fahrenheit) - 32.0))
-    }
-    
-    
     //gets TODAY'S date
     func getDate () -> String {
         let date = Date()
@@ -307,10 +300,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     //Test button to check values of vars
     @IBAction func testBtnPressed(_ sender: Any) {
-        //let settingsVC = SettingsViewController()
-        
-        //print ("Test print zip ----- \(zipCode)")
-        //print("Segment Control : \(settingsVC.indexx)")
+        if let value = UserDefaults.standard.value(forKey: "chosenDegree"){
+            let selectedIndex = value as! Int
+            
+            print("Segment Control Test : \(selectedIndex)")
+        }
     }
 
     
@@ -340,7 +334,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     
                         
                         if let temperature = currently["temperature"] as? Double {
-                            currentWeather.currentTemp = Int(temperature).description
+                            currentWeather.currentTemp = temperature
                         }
                         if let icon = currently["icon"] as? String {
                             currentWeather.currentImg = UIImage (named: icon)
@@ -360,7 +354,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             if let data = hourly["data"] as? [AnyObject] {
                                 if let hourNum = data[i] as? [String : AnyObject] {
                                     if let temperature = hourNum["temperature"] as? Double {
-                                        hour.temp = Int(temperature).description
+                                        hour.temp = temperature
                                     }
                                     if let icon = hourNum["icon"] as? String {
                                         hour.conditionImg = UIImage (named: icon)
@@ -368,7 +362,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                                 }
                             }
                         }
-                        //print("hour test loop")
                         hourlyWeather.add(hour)
                     }
                 
@@ -385,10 +378,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                                     if let temperatureHigh = dayNum["temperatureHigh"] as? Double {
                                        
                                         if(i != 0) {
-                                            day.high = Int(temperatureHigh).description
+                                            day.high = temperatureHigh
                                         }
                                         else {
-                                            currentWeather.high = Int(temperatureHigh).description
+                                            currentWeather.high = temperatureHigh
                                         }
                                 
                                     }
@@ -396,10 +389,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                                         
                                         
                                         if(i != 0) {
-                                            day.low = Int(temperatureLow).description
+                                            day.low = temperatureLow
                                         }
                                         else {
-                                            currentWeather.low = Int(temperatureLow).description
+                                            currentWeather.low = temperatureLow
                                         }
                                         
                                     }
@@ -414,7 +407,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             }
                         }
                         if (i != 0) {
-                            //print("day test loop")
                             dailyWeather.add(day)
                         }
                     }
@@ -428,6 +420,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     
                     DispatchQueue.main.async {
                         if self.exists{
+                            
+                            let isFah = (UserDefaults.standard.value(forKey: "chosenDegree") as? Int)
+
+                            
                             self.currentTempLbl.isHidden = false
                             self.currentConditionLbl.isHidden = false
                             self.currentPic.isHidden = false
@@ -436,14 +432,32 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                             self.currentDayLbl.isHidden = false
                             self.todayLbl.isHidden = false
                             
-                            
-                            self.currentTempLbl.text = "\(currentWeather.currentTemp.description)°"
-                            //self.cityLbl.text = currentWeather.location   <-- moved this to geocoding func
                             self.currentConditionLbl.text = currentWeather.currentCondition
                             self.currentPic.image = currentWeather.currentImg
                             
-                            self.currentHighLbl.text = "\(currentWeather.high.description)°"
-                            self.currentLowLbl.text = "\(currentWeather.low.description)°"
+                            
+                            if (isFah == 0) {
+                                let roundedHigh = lround(currentWeather.high)
+                                let roundedLow = lround(currentWeather.low)
+                                let roundedTemp = lround(currentWeather.currentTemp)
+                                
+                                self.currentHighLbl.text = roundedHigh.description
+                                self.currentLowLbl.text = roundedLow.description
+                                self.currentTempLbl.text = roundedTemp.description
+                            }
+                                
+                                
+                            else
+                            {
+                                let roundedHighCelsius = lround(currentWeather.highCelsius)
+                                let roundedLowCelsius = lround(currentWeather.lowCelsius)
+                                let roundedTempCelsius = lround(currentWeather.tempCelsius)
+                                
+                                self.currentHighLbl.text = roundedHighCelsius.description
+                                self.currentLowLbl.text = roundedLowCelsius.description
+                                self.currentTempLbl.text = roundedTempCelsius.description
+                            }
+                            
                             self.currentDayLbl.text = self.getDate()
                             
                             
@@ -552,21 +566,24 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HourlyCollectionViewCell", for: indexPath) as! HourlyCollectionViewCell
             
             
-            let hourlyWeatherArray = self.currentWeather.hourlyWeather
-            
-            var tempArray = [String]()
-            var iconArray = [UIImage]()
-            //print ("Array size: \(String(describing: hourlyWeatherArray.count))")
-            
-            for hour in hourlyWeatherArray {
-                tempArray.append(hour.temp)
-                iconArray.append(hour.conditionImg!)
-            }
-            
             
             cell.hourLbl.text = hoursOfDayArray[indexPath.row]
-            cell.hourDegreeLbl.text = tempArray[indexPath.row]
-            cell.hourConditionImg.image = iconArray[indexPath.row]
+            cell.hourConditionImg.image = self.currentWeather.hourlyWeather[indexPath.row].conditionImg
+
+            
+            let isFah = (UserDefaults.standard.value(forKey: "chosenDegree") as? Int)
+                if (isFah == 0) {
+                let roundedDegree = lround(self.currentWeather.hourlyWeather[indexPath.row].temp)
+                cell.hourDegreeLbl.text = roundedDegree.description
+            }
+                
+                
+            else
+            {
+                let roundedDegreeCelsius = lround(self.currentWeather.hourlyWeather[indexPath.row].tempCelsius)
+                cell.hourDegreeLbl.text = roundedDegreeCelsius.description
+            }
+            
             
             return cell
         }
@@ -576,24 +593,29 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DailyCollectionViewCell", for: indexPath) as! DailyCollectionViewCell
             
             
-            let dailyWeatherArray = self.dailyWeather
+            cell.conditionImg.image = self.dailyWeather[indexPath.row].conditionImg
+            cell.dayLbl.text = daysOfWeekArray[indexPath.row]
+
             
-            var highArray = [String]()
-            var lowArray = [String]()
-            var iconArray = [UIImage]()
-            //print ("Array size: \(dailyWeatherArray.count)")
-            
-            for day in dailyWeatherArray {
-                highArray.append(day.high!)
-                lowArray.append(day.low!)
-                iconArray.append(day.conditionImg!)
+            let isFah = (UserDefaults.standard.value(forKey: "chosenDegree") as? Int)
+            if (isFah == 0) {
+                let roundedHigh = lround(self.dailyWeather[indexPath.row].high)
+                cell.highLbl.text = roundedHigh.description
+                let roundedLow = lround(self.dailyWeather[indexPath.row].low)
+                cell.lowLbl.text = roundedLow.description
+
+            }
+                
+                
+            else
+            {
+                let roundedHighCelsius = lround(self.dailyWeather[indexPath.row].highCelsius)
+                cell.highLbl.text = roundedHighCelsius.description
+                let roundedLowCelsius = lround(self.dailyWeather[indexPath.row].lowCelsius)
+                cell.lowLbl.text = roundedLowCelsius.description
+
             }
             
-            
-            cell.dayLbl.text = daysOfWeekArray[indexPath.row]
-            cell.conditionImg.image = iconArray[indexPath.row]
-            cell.highLbl.text = highArray[indexPath.row]
-            cell.lowLbl.text = lowArray[indexPath.row]
           
             return cell
             
