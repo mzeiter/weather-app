@@ -78,6 +78,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
 
         // Do any additional setup after loading the view.
+        //this is a test
     }
     
     
@@ -98,8 +99,6 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
             
         }
-        
-        print("sup")
         
 
         
