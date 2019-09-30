@@ -8,7 +8,7 @@ Follow the instructions below to get started using the app. This application is 
 
 ### Prerequisites
 * Xcode installed on computer
-* iOS device to run application on (optional if using simulator)
+* iOS device to run application (optional if using simulator)
 * WiFi
 
 
