@@ -24,4 +24,4 @@ Follow the instructions below to get started using the app. This application is 
 
 6. Xcode builds the app, installs it on the device, and launches it.
 
-7. Enjoy!  
+7. Enjoy!
